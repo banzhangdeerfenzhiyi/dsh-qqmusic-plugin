@@ -153,7 +153,7 @@ async function renderSingingOnce(request, settings, log) {
   const auth = settings.authEnabled === false ? undefined : readAuth(settings.cookieFile);
   if (auth) log(`sing: account uin=${auth.uin} cookie=${describeAuthSource(settings.cookieFile)}`);
 
-  const songs = await searchSongs(keyword, settings.searchLimit);
+  const songs = await searchSongs(keyword, settings.searchLimit, auth);
   if (songs.length === 0) throw notFound(`QQ 音乐没搜到《${keyword}》，换个歌名试试。`);
   log(`sing: keyword=${keyword} mode=${mode} seconds=${seconds} found=${songs.length} auth=${Boolean(auth)}`);
 

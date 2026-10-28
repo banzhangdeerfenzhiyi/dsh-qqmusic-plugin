@@ -1,7 +1,7 @@
 /**
  * QQ Music web API client (unofficial, the same endpoints y.qq.com uses).
  *
- *   search   GET  c.y.qq.com/soso/fcgi-bin/client_search_cp      (old but stable)
+ *   search   POST u.y.qq.com/cgi-bin/musicu.fcg                 (SearchCgiService; legacy soso as fallback)
  *   vkey     POST u.y.qq.com/cgi-bin/musicu.fcg                  (vkey.GetVkeyServer)
  *   download GET  dl.stream.qqmusic.qq.com/<purl>                (128k mp3, free tracks)
  *   lyric    POST u.y.qq.com/cgi-bin/musicu.fcg                  (PlayLyricInfo)
@@ -109,14 +109,86 @@ function normalizeSong(row) {
 /**
  * Search QQ Music.
  *
+ * Tries the current musicu search API first (the legacy soso endpoint started
+ * returning HTTP 500 with an empty body); the legacy endpoint stays as a
+ * fallback for the day the musicu module gets retired in turn.
+ *
  * @param {string} keyword
  * @param {number} [limit]
+ * @param {import('./qqauth.mjs').QqAuth} [auth]
  * @returns {Promise<ReturnType<typeof normalizeSong>[]>}
  */
-export async function searchSongs(keyword, limit = 10) {
+export async function searchSongs(keyword, limit = 10, auth) {
   const term = String(keyword ?? '').trim();
   if (term === '') throw new QQMusicError('要搜的歌名是空的。');
   const count = Math.min(30, Math.max(1, Math.round(limit)));
+  /** @type {string[]} */
+  const failures = [];
+  try {
+    const songs = await searchSongsModern(term, count, auth);
+    if (songs.length > 0) return songs;
+    failures.push('current: 0 results');
+  } catch (error) {
+    failures.push(`current: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  try {
+    const songs = await searchSongsLegacy(term, count);
+    if (songs.length > 0) return songs;
+    failures.push('legacy: 0 results');
+  } catch (error) {
+    failures.push(`legacy: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  throw new QQMusicError('QQ 音乐搜索接口暂时不可用，稍后再试', failures.join('; '));
+}
+
+/**
+ * Current search API (musicu SearchCgiService), the one the QQ Music web app
+ * uses today. Accepts the optional account cookie so subscription accounts get
+ * the same result ranking as the website.
+ *
+ * @param {string} term
+ * @param {number} count
+ * @param {import('./qqauth.mjs').QqAuth} [auth]
+ * @returns {Promise<ReturnType<typeof normalizeSong>[]>}
+ */
+async function searchSongsModern(term, count, auth) {
+  const comm = {
+    uin: auth ? Number(auth.uin) || 0 : 0,
+    format: 'json',
+    ct: 24,
+    cv: 0,
+    platform: 'yqq.json',
+    ...(auth ? { authst: auth.key } : {}),
+  };
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(auth ? { Cookie: cookieHeader(auth) } : {}),
+  };
+  const data = await fetchJson(MUSICU_URL, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      comm,
+      req_1: {
+        module: 'music.search.SearchCgiService',
+        method: 'DoSearchForQQMusicDesktop',
+        param: { query: term, num_per_page: count, page_num: 1, search_type: 0 },
+      },
+    }),
+  });
+  const list = data?.req_1?.data?.body?.song?.list;
+  if (!Array.isArray(list)) return [];
+  return list.map(normalizeSong).filter((song) => song.mid !== '');
+}
+
+/**
+ * Legacy search endpoint (c.y.qq.com), kept as a fallback.
+ *
+ * @param {string} term
+ * @param {number} count
+ * @returns {Promise<ReturnType<typeof normalizeSong>[]>}
+ */
+async function searchSongsLegacy(term, count) {
   const data = await fetchJson(
     `${SEARCH_URL}?w=${encodeURIComponent(term)}&format=json&n=${count}&p=1&cr=1&new_json=1&t=0`,
   );

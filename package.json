@@ -1,6 +1,6 @@
-{
+﻿{
   "name": "dsh-qqmusic-plugin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
   "description": "QQ Music karaoke + AI cover singing for DeepSeek Harness WeChat/QQ persona bots: search a song, split vocals with Demucs, convert the voice with RVC, mix and send a real voice bubble (WeChat SILK) or a QQ record.",
   "type": "module",
