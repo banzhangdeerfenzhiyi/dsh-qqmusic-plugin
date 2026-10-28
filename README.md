@@ -42,6 +42,9 @@ voice bubble (SILK) or a QQ voice message.*
 
 同一首歌被多个群同时点时会**串行渲染**、复用缓存，不会抢文件产出截断语音。
 
+> 也可以在 DSH 的「添加插件」里填本仓库的 **GitHub 地址**（不是 npm 包名）安装：
+> DSH 会拉取仓库并读取 `package.json` 的 `dsh.bundle`。包名方式只适用于已发布到 npm 的插件。
+
 ## 环境要求
 
 | 项目 | 要求 |
