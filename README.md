@@ -1,5 +1,7 @@
 ﻿# dsh-qqmusic-plugin
 
+[![npm](https://img.shields.io/npm/v/dsh-qqmusic-plugin.svg)](https://www.npmjs.com/package/dsh-qqmusic-plugin) [![license](https://img.shields.io/npm/l/dsh-qqmusic-plugin.svg)](LICENSE)
+
 > 给 [DeepSeek Harness](https://github.com/deepseek-ai)（DSH）里的微信 / QQ 人格机器人
 > 加一个**真·唱歌**技能：点一首 QQ 音乐的歌，她用自己的 AI 音色翻唱一段，以
 > **真实微信语音条 / QQ 语音**发出来。
@@ -64,14 +66,14 @@ DSH 会拉取仓库并读取 `package.json` 的 `dsh.bundle`，按 `cordis.patch
 dsh plugin --profile desktop add https://github.com/banzhangdeerfenzhiyi/dsh-qqmusic-plugin
 ```
 
-### 方式 C：npm 包名（发布到 npm 后可用）
+### 方式 C：npm 包名（已发布，最省事）
 
 ```bash
 dsh plugin --profile desktop add dsh-qqmusic-plugin
 ```
 
-> 维护者提示：npm 发布配置与自动发布流程已就绪（`.github/workflows/publish-npm.yml`，
-> 需要仓库 secret `NPM_TOKEN`）。发布后把本节的「发布后可用」提示去掉即可。
+> 当前版本：`0.1.0`（[npm 页面](https://www.npmjs.com/package/dsh-qqmusic-plugin)）。
+> 中国大陆镜像源同步可能延迟几分钟；如果暂时装不到，指向官方源 `https://registry.npmjs.org` 即可。
 
 ### 方式 D：本地脚本（开发者）
 
